@@ -3,4 +3,4 @@ project(AOR2_CPP)
 
 set(CMAKE_CXX_STANDARD 11)
 
-add_executable(AOR2_CPP main.cpp operations.cpp)
+add_executable(AOR2_CPP src/main.cpp src/operations.cpp)

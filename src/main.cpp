@@ -3,7 +3,6 @@
 #include <string>
 #include <unordered_map>
 #include <functional>
-#include <cpuid.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -11,6 +10,8 @@
 #include "../header/stb_image_write.h"
 
 #include "../header/operations.h"
+#include "../header/operations_optimized.h"
+#include "../header/helper.h"
 
 using namespace std;
 
@@ -19,27 +20,14 @@ unordered_map<string, function<void(unsigned char*, unsigned char, aor2::COLOR)>
 };
 
 int width, height, channels;
+int cache_size;
 
-void getCacheDetails() {
-    int registers[4];
-    int cacheType, cacheLevel, cacheWays, cacheSets, cacheLineSize;
-
-    // Execute CPUID instruction with input 4 to get cache details
-    __cpuid(4, registers[0], registers[1], registers[2], registers[3]);
-
-    // Extract cache details from the registers
-    cacheType = (registers[0] & 0x1F);
-    cacheLevel = ((registers[0] >> 5) & 0x7);
-    cacheWays = ((registers[1] >> 22) & 0x3FF) + 1;
-    cacheSets = ((registers[1] >> 12) & 0x3FF) + 1;
-    cacheLineSize = (registers[1] & 0xFFF) + 1;
-
-    // Print the cache details
-    std::cout << "Cache Type: " << cacheType << std::endl;
-    std::cout << "Cache Level: " << cacheLevel << std::endl;
-    std::cout << "Cache Ways: " << cacheWays << std::endl;
-    std::cout << "Cache Sets: " << cacheSets << std::endl;
-    std::cout << "Cache Line Size: " << cacheLineSize << " bytes" << std::endl;
+void printPixels(unsigned char* img, int size) {
+    for (int i = 0; i < size; i += 4) {
+        cout << "[" << (int) img[i] << ", " << (int) img[i + 1] << ", " << (int) img[i + 2] << ", " << (int) img[i + 3]
+        << "]" << endl;
+    }
+    cout << endl << endl << endl;
 }
 
 int main(int argc, char** argv) {
@@ -48,13 +36,15 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    getCacheDetails();
+    cache_size = aor2::readCacheInfo(0);
 
-    unsigned char* image_ptr = stbi_load("./images/test1.jpg", &width, &height, &channels, 0);
+    unsigned char* image_ptr = stbi_load("./images/test.jpg", &width, &height, &channels, STBI_rgb_alpha);
     if (image_ptr == nullptr) {
         std::cout << "Could not open or find the image. \n" << std::endl;
         return -1;
     }
+
+    channels = 4;
 
     if ((string)argv[1] == "-load-txt") {
 //        cout << "Reading from txt file: \n";
@@ -63,17 +53,26 @@ int main(int argc, char** argv) {
 //        while (getline(txt_file, operation_name)) {
 //        }
 
+//        aor2::add_op((char*) image_ptr, 30, aor2::COLOR::RED);
+//        aor2::add_op(image_ptr, 10, aor2::COLOR::RED);
+//        aor2::add_op(image_ptr, 30, aor2::COLOR::BLUE);
+//        aor2::div_inverse_op((char*) image_ptr, 200, aor2::COLOR::RED);
+        //aor2::power_op(image_ptr, 2, aor2::COLOR::RED);
+//        aor2::log_op(image_ptr, aor2::COLOR::RED);
+//        aor2::abs(image_ptr, aor2::COLOR::RED);
+        aor2::sub_inverse(image_ptr, 20, aor2::COLOR::RED);
+        aor2::sub_inverse_op((char*) image_ptr, 20, aor2::COLOR::RED);
+
         if (!stbi_write_jpg("output_image.jpg", width, height, channels, image_ptr, 100)) {
             cout << "Failed to save image. \n";
             stbi_image_free(image_ptr);
             return -1;
         }
 
-        stbi_image_free(image_ptr);
-        return 1;
     }
 
-    cout << "nije ludilo";
+    stbi_image_free(image_ptr);
+
     return 0;
 }
 

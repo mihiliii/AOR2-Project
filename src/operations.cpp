@@ -44,12 +44,14 @@ void aor2::mul(unsigned char* image_ptr, unsigned char value, aor2::COLOR color)
 }
 
 void aor2::div(unsigned char* image_ptr, unsigned char value, aor2::COLOR color) {
+    StartTimer(NOSIMD)
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
             int image_pixel = (i * width + j) * channels;
             image_ptr[image_pixel + color] /= value;
         }
     }
+    EndTimer
 }
 
 void aor2::sub_inverse(unsigned char* image_ptr, unsigned char value, aor2::COLOR color) {
@@ -99,7 +101,7 @@ void aor2::abs(unsigned char* image_ptr, aor2::COLOR color) {
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
             int image_pixel = (i * width + j) * channels;
-            image_ptr[image_pixel + color] = (unsigned char) std::abs(image_ptr[image_pixel + color]);
+            image_ptr[image_pixel + color] = std::abs((char) image_ptr[image_pixel + color]);
         }
     }
     EndTimer
@@ -137,6 +139,7 @@ void aor2::inverse(unsigned char* image_ptr) {
 }
 
 void aor2::grayscale(unsigned char* image_ptr) {
+    StartTimer(NOSIMD)
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
             int image_pixel = (i * width + j) * channels;
@@ -146,6 +149,39 @@ void aor2::grayscale(unsigned char* image_ptr) {
             image_ptr[image_pixel + 2] = mid_value;
         }
     }
+    EndTimer
 }
 
+//void aor2::filter(unsigned char* image_ptr, float* matrix, int N) {
+//    int a = N/2;
+//    for (int i = 1; i < height - 1; i ++) {
+//        for (int j = 3; j < width * channels - 3; j += 3) {
+//            int temp = 0;
+//            for (int ii = -a; ii <= a; ii++) {
+//                for (int jj = -a; jj <= a; j++) {
+//                    temp += image_ptr[(i + ii) * width + j + jj] * matrix[(ii + 1) * N + (jj + 1)];
+//                }
+//            }
+//            if (temp > 255) temp = 255;
+//            if (temp < 0) temp = 0;
+//            image_ptr[i * width + j] = (unsigned char) temp;
+//        }
+//    }
+//}
 
+void aor2::filter(unsigned char* image_ptr, float* matrix, int N) {
+    int a = N/2;
+    for (int i = 1; i < height - 1; i++) {
+        for (int j = 3; j < width * channels - 3; j++) {
+            int temp = 0;
+            for (int ii = -a; ii <= a; ii++){
+                for (int jj = -a; jj <= a; jj++) {
+                    temp = temp + (int) (image_ptr[(i + ii) * width * channels + j + (jj * channels)] * matrix[(ii + 1) * N + (jj + 1)]);
+                }
+            }
+            temp = std::min(255, temp);
+            temp = std::max(0, temp);
+            image_ptr[i * width * channels + j] = (unsigned char) temp;
+        }
+    }
+}

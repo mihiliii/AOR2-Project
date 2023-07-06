@@ -10,8 +10,7 @@ using namespace std;
 
 unordered_map<string, function<void(unsigned char*)>> func_1 = {
         {"INVERSE", aor2::inverse_op},
-        {"GRAYSCALE", aor2::grayscale_op},
-//        {"FILTER", aor2::filter_op}
+        {"GRAYSCALE", aor2::grayscale_op}
 };
 
 unordered_map<string, function<void(unsigned char*, aor2::COLOR)>> func_2 = {
@@ -60,13 +59,13 @@ int aor2::readCacheInfo(int cpu_core) {
 
 }
 
-int aor2::decode_line(const std::string& line) {
+int aor2::decode_line(unsigned char* image_ptr, const std::string& line) {
     istringstream ss(line);
     string instruction_str, value_str, color_str;
     ss >> instruction_str;
     if (func_1.find(instruction_str) != func_1.end()) {
         func_1[instruction_str](image_ptr);
-        continue;
+        return 1;
     }
     ss >> color_str;
     aor2::COLOR color;
@@ -78,18 +77,20 @@ int aor2::decode_line(const std::string& line) {
         color = aor2::COLOR::BLUE;
     } else {
         cout << "Error: Invalid color.";
+        return -1;
     }
     if (func_2.find(instruction_str) != func_2.end()) {
         func_2[instruction_str](image_ptr, color);
-        continue;
+        return 1;
     }
     ss >> value_str;
     if (func_3_char.find(instruction_str) != func_3_char.end()) {
         func_3_char[instruction_str](image_ptr, stoi(value_str), color);
-        continue;
+        return 1;
     } else if (func_3_float.find(instruction_str) != func_3_float.end()) {
         func_3_float[instruction_str](image_ptr, stof(value_str), color);
-        continue;
+        return 1;
     }
     cout << "Error: Invalid instruction";
+    return -1;
 }

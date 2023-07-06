@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+# Custom
+/cmake-build-default/
+/output_image.jpg
+
+exe

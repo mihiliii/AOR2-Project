@@ -1,9 +1,6 @@
 #include <iostream>
 #include <fstream>
-#include <sstream>
 #include <string>
-#include <unordered_map>
-#include <functional>
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -55,37 +52,7 @@ int main(int argc, char** argv) {
         if (txt_file.is_open()) {
             string line;
             while (getline(txt_file, line)) {
-                istringstream ss(line);
-                string instruction_str, value_str, color_str;
-                ss >> instruction_str;
-                if (func_1.find(instruction_str) != func_1.end()) {
-                    func_1[instruction_str](image_ptr);
-                    continue;
-                }
-                ss >> color_str;
-                aor2::COLOR color;
-                if (color_str == "R") {
-                    color = aor2::COLOR::RED;
-                } else if (color_str == "G") {
-                    color = aor2::COLOR::GREEN;
-                } else if (color_str == "B") {
-                    color = aor2::COLOR::BLUE;
-                } else {
-                    cout << "Error: Invalid color.";
-                }
-                if (func_2.find(instruction_str) != func_2.end()) {
-                    func_2[instruction_str](image_ptr, color);
-                    continue;
-                }
-                ss >> value_str;
-                if (func_3_char.find(instruction_str) != func_3_char.end()) {
-                    func_3_char[instruction_str](image_ptr, stoi(value_str), color);
-                    continue;
-                } else if (func_3_float.find(instruction_str) != func_3_float.end()) {
-                    func_3_float[instruction_str](image_ptr, stof(value_str), color);
-                    continue;
-                }
-                cout << "Error: Invalid instruction";
+                aor2::decode_line(image_ptr, line);
             }
             txt_file.close();
         }

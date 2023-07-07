@@ -7,6 +7,13 @@ namespace aor2 {
         RED, GREEN, BLUE
     };
 
+    struct Pixel {
+        unsigned char R;
+        unsigned char G;
+        unsigned char B;
+        unsigned char A;
+    };
+
     void add(unsigned char*, unsigned char, COLOR);
     void sub(unsigned char*, unsigned char, COLOR);
     void mul(unsigned char*, unsigned char, COLOR);
@@ -23,7 +30,7 @@ namespace aor2 {
     void inverse(unsigned char*);
     void grayscale(unsigned char*);
 
-    void filter(unsigned char*, float*, int);
+    unsigned char* filter(Pixel*, float*, int);
 
     //void do_operation(unsigned char* image_ptr, const string& operation_name) {
 //    func_hashmap[operation_name](image_ptr, 5);

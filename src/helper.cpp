@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include "../header/operations_optimized.h"
 
+
+
 using namespace std;
 
 unordered_map<string, function<void(unsigned char*)>> func_1 = {
@@ -59,10 +61,22 @@ int aor2::readCacheInfo(int cpu_core) {
 
 }
 
-int aor2::decode_line(unsigned char* image_ptr, const std::string& line) {
+int aor2::decode_line(unsigned char*& image_ptr, const std::string& line) {
     istringstream ss(line);
     string instruction_str, value_str, color_str;
     ss >> instruction_str;
+    if (instruction_str == "FILTER") {
+        string matrix_size, element;
+        ss >> matrix_size;
+        int N = stoi(matrix_size);
+        float* matrix = new float[N * N];
+        for (int i = 0; i < N * N; i++) {
+            ss >> element;
+            matrix[i] = stof(element);
+        }
+        image_ptr = aor2::filter((Pixel*) image_ptr, &matrix[0], N);
+        return 1;
+    }
     if (func_1.find(instruction_str) != func_1.end()) {
         func_1[instruction_str](image_ptr);
         return 1;

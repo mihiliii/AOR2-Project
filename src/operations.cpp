@@ -6,6 +6,7 @@
 
 #include "../header/_Timer.h"
 #include "../header/operations.h"
+#include "../header/helper.h"
 
 using namespace std;
 
@@ -169,19 +170,25 @@ void aor2::grayscale(unsigned char* image_ptr) {
 //    }
 //}
 
-void aor2::filter(unsigned char* image_ptr, float* matrix, int N) {
+unsigned char* aor2::filter(Pixel* image_ptr, float* matrix, int N) {
+    auto copy = new aor2::Pixel[width * height];
     int a = N/2;
-    for (int i = 1; i < height - 1; i++) {
-        for (int j = 3; j < width * channels - 3; j++) {
-            int temp = 0;
-            for (int ii = -a; ii <= a; ii++){
-                for (int jj = -a; jj <= a; jj++) {
-                    temp = temp + (int) (image_ptr[(i + ii) * width * channels + j + (jj * channels)] * matrix[(ii + 1) * N + (jj + 1)]);
+    for (int i = a; i < height - a; i++) {
+        for (int j = a; j < width - a; j++) {
+            int R = 0, G = 0, B = 0;
+            for (int ii = 0; ii < N; ii++){
+                for (int jj = 0; jj < N; jj++) {
+                    R = R + (int) ((float) image_ptr[(i + ii - a) * width + j + jj - a].R * matrix[ii * N + jj]);
+                    G = G + (int) ((float) image_ptr[(i + ii - a) * width + j + jj - a].G * matrix[ii * N + jj]);
+                    B = B + (int) ((float) image_ptr[(i + ii - a) * width + j + jj - a].B * matrix[ii * N + jj]);
                 }
             }
-            temp = std::min(255, temp);
-            temp = std::max(0, temp);
-            image_ptr[i * width * channels + j] = (unsigned char) temp;
+            R = std::max(0, std::min(255, R));
+            G = std::max(0, std::min(255, G));
+            B = std::max(0, std::min(255, B));
+            copy[i * width + j] = { (unsigned char) R, (unsigned char) G, (unsigned char) B, 255};
         }
     }
+    stbi_image_free((unsigned char*) image_ptr);
+    return (unsigned char*) copy;
 }

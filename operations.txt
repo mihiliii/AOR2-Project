@@ -1,2 +1,1 @@
-ADD R 5
-SUB R 5
+FILTER 3 0 -1 0 -1 5 -1 0 -1 0

@@ -352,14 +352,13 @@ void aor2::grayscale_op(unsigned char* img) {
     EndTimer
 }
 
-unsigned char* aor2::filter_op(Pixel* image_ptr, float* matrix, int N) {
-    auto copy = new aor2::Pixel[width * height];
+void aor2::filter_op(Pixel* image_ptr, float* matrix, int N, Pixel* new_image_ptr) {
     StartTimer(SIMD)
     int k = N/2;
-    for (int i = k; i < height - (k + 64); i += 64) {
-        for (int j = k; j < width - (k + 16); j += 16) {
-            for (int ii = i; ii < i + 64; ii++) {
-                for (int jj = j; jj < j + 16; jj++) {
+    for (int i = k; i < height - k; i += 64) {
+        for (int j = k; j < width - k; j += 16) {
+            for (int ii = i; ii < (i + 64) && ii < (height - k); ii++) {
+                for (int jj = j; jj < (j + 16) && (jj < height - k); jj++) {
                     int R = 0, G = 0, B = 0;
                     for (int a = 0; a < N; a++){
                         for (int b = 0; b < N; b++) {
@@ -371,12 +370,11 @@ unsigned char* aor2::filter_op(Pixel* image_ptr, float* matrix, int N) {
                     R = std::max(0, std::min(255, R));
                     G = std::max(0, std::min(255, G));
                     B = std::max(0, std::min(255, B));
-                    copy[ii * width + jj] = { (unsigned char) R, (unsigned char) G, (unsigned char) B, 255};
+                    new_image_ptr[ii * width + jj] = { (unsigned char) R, (unsigned char) G, (unsigned char) B, 255};
                 }
             }
         }
     }
     EndTimer
-    stbi_image_free((unsigned char*) image_ptr);
     return (unsigned char*) copy;
 }

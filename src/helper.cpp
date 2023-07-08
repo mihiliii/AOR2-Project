@@ -8,6 +8,10 @@
 
 using namespace std;
 
+extern int width, height, channels;
+extern char* filename;
+
+
 unordered_map<string, function<void(unsigned char*)>> func_1 = {
         {"INVERSE", aor2::inverse_op},
         {"GRAYSCALE", aor2::grayscale_op}
@@ -63,16 +67,25 @@ int aor2::decode_line(unsigned char*& image_ptr, const std::string& line) {
     istringstream ss(line);
     string instruction_str, value_str, color_str;
     ss >> instruction_str;
+
     if (instruction_str == "FILTER") {
         string matrix_size, element;
         ss >> matrix_size;
         int N = stoi(matrix_size);
-        float* matrix = new float[N * N];
+        auto matrix = new float[N * N];
         for (int i = 0; i < N * N; i++) {
             ss >> element;
             matrix[i] = stof(element);
         }
-        image_ptr = aor2::filter_op((Pixel*) image_ptr, &matrix[0], N);
+        unsigned char* new_image_ptr = stbi_load(filename, &width, &height, &channels, STBI_rgb_alpha);
+        channels = 4;
+
+        aor2::filter((Pixel*) image_ptr, &matrix[0], N, (Pixel*) new_image_ptr);
+
+        stbi_image_free(image_ptr);
+        image_ptr = new_image_ptr;
+        delete[] matrix;
+
         return 1;
     }
     if (func_1.find(instruction_str) != func_1.end()) {
@@ -81,6 +94,7 @@ int aor2::decode_line(unsigned char*& image_ptr, const std::string& line) {
     }
     ss >> color_str;
     aor2::COLOR color;
+
     if (color_str == "R") {
         color = aor2::COLOR::RED;
     } else if (color_str == "G") {
@@ -91,11 +105,13 @@ int aor2::decode_line(unsigned char*& image_ptr, const std::string& line) {
         cout << "Error: Invalid color.";
         return -1;
     }
+
     if (func_2.find(instruction_str) != func_2.end()) {
         func_2[instruction_str](image_ptr, color);
         return 1;
     }
     ss >> value_str;
+
     if (func_3_char.find(instruction_str) != func_3_char.end()) {
         func_3_char[instruction_str](image_ptr, stoi(value_str), color);
         return 1;
@@ -103,11 +119,12 @@ int aor2::decode_line(unsigned char*& image_ptr, const std::string& line) {
         func_3_float[instruction_str](image_ptr, stof(value_str), color);
         return 1;
     }
+
     cout << "Error: Invalid instruction";
     return -1;
 }
 
-void aor2::printPixels(unsigned char* img, int size, int channels) {
+void aor2::printPixels(unsigned char* img, int size) {
    if (channels == 3){
        for (int i = 0; i < size; i += channels) {
            cout << "[" << (int) img[i] 

@@ -33,7 +33,7 @@ void aor2::sub(unsigned char* image_ptr, unsigned char value, aor2::COLOR color)
     }
 }
 
-void aor2::mul(unsigned char* image_ptr, unsigned char value, aor2::COLOR color) {
+void aor2::mul(unsigned char* image_ptr, float value, aor2::COLOR color) {
     StartTimer(NOSIMD)
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
@@ -44,7 +44,7 @@ void aor2::mul(unsigned char* image_ptr, unsigned char value, aor2::COLOR color)
     EndTimer
 }
 
-void aor2::div(unsigned char* image_ptr, unsigned char value, aor2::COLOR color) {
+void aor2::div(unsigned char* image_ptr, float value, aor2::COLOR color) {
     StartTimer(NOSIMD)
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
@@ -66,7 +66,7 @@ void aor2::sub_inverse(unsigned char* image_ptr, unsigned char value, aor2::COLO
     EndTimer
 }
 
-void aor2::div_inverse(unsigned char* image_ptr, unsigned char value, aor2::COLOR color) {
+void aor2::div_inverse(unsigned char* image_ptr, float value, aor2::COLOR color) {
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
             int image_pixel = (i * width + j) * channels;
@@ -102,7 +102,7 @@ void aor2::abs(unsigned char* image_ptr, aor2::COLOR color) {
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
             int image_pixel = (i * width + j) * channels;
-            image_ptr[image_pixel + color] = std::abs((char) image_ptr[image_pixel + color]);
+            image_ptr[image_pixel + color] = (unsigned char) std::abs((char) image_ptr[image_pixel + color]);
         }
     }
     EndTimer
@@ -153,8 +153,7 @@ void aor2::grayscale(unsigned char* image_ptr) {
     EndTimer
 }
 
-unsigned char* aor2::filter(Pixel* image_ptr, float* matrix, int N) {
-    auto copy = new aor2::Pixel[width * height];
+void aor2::filter(Pixel* image_ptr, float* matrix, int N, Pixel* new_image_ptr) {
     StartTimer(NOSIMD)
     int k = N/2;
     for (int i = k; i < height - k; i++) {
@@ -170,10 +169,10 @@ unsigned char* aor2::filter(Pixel* image_ptr, float* matrix, int N) {
             R = std::max(0, std::min(255, R));
             G = std::max(0, std::min(255, G));
             B = std::max(0, std::min(255, B));
-            copy[i * width + j] = { (unsigned char) R, (unsigned char) G, (unsigned char) B, 255};
+            new_image_ptr[i * width + j] = { (unsigned char) R, (unsigned char) G, (unsigned char) B, 255};
         }
     }
     EndTimer
     stbi_image_free((unsigned char*) image_ptr);
-    return (unsigned char*) copy;
+    return (unsigned char*) new_image_ptr;
 }

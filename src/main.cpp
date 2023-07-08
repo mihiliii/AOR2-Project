@@ -13,6 +13,7 @@
 using namespace std;
 
 int width, height, channels;
+char* filename;
 int cache_size;
 
 int main(int argc, char** argv) {
@@ -23,7 +24,8 @@ int main(int argc, char** argv) {
 
     cache_size = aor2::readCacheInfo(0);
 
-    unsigned char* image_ptr = stbi_load(argv[1], &width, &height, &channels, STBI_rgb_alpha);
+    filename = argv[1];
+    unsigned char* image_ptr = stbi_load(filename, &width, &height, &channels, STBI_rgb_alpha);
     if (image_ptr == nullptr) {
         std::cout << "Error: Could not open or find the image. \n" << std::endl;
         return -1;
@@ -37,7 +39,7 @@ int main(int argc, char** argv) {
         if (txt_file.is_open()) {
             string line;
             while (getline(txt_file, line)) {
-                aor2::decode_line(image_ptr, line);
+                 aor2::decode_line(image_ptr, line);
             }
             txt_file.close();
         }

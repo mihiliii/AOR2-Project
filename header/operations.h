@@ -32,10 +32,6 @@ namespace aor2 {
 
     unsigned char* filter(Pixel*, float*, int);
 
-    //void do_operation(unsigned char* image_ptr, const string& operation_name) {
-//    func_hashmap[operation_name](image_ptr, 5);
-//}
-
 }
 
 #endif

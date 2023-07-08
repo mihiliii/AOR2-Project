@@ -12,6 +12,8 @@ namespace aor2 {
 
     int decode_line(unsigned char*& image_ptr, const std::string& line);
 
+    void printPixels(unsigned char* img, int size, int channels);
+
 }
 
 #endif

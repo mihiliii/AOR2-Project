@@ -21,7 +21,7 @@ namespace aor2 {
     void inverse_op(unsigned char*);
     void grayscale_op(unsigned char*);
 
-    void filter_op(unsigned char*);
+    unsigned char* filter_op(Pixel*, float*, int);
 
 }
 

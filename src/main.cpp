@@ -15,20 +15,6 @@ using namespace std;
 int width, height, channels;
 int cache_size;
 
-//void printPixels(unsigned char* img, int size, int channels) {
-//    if (channels == 3){
-//        for (int i = 0; i < size; i += channels) {
-//            cout << "[" << (int) img[i] << ", " << (int) img[i + 1] << ", " << (int) img[i + 2] << "]" << endl;
-//        }
-//    }
-//    else {
-//        for (int i = 0; i < size; i += channels) {
-//            cout << "[" << (int) img[i] << ", " << (int) img[i + 1] << ", " << (int) img[i + 2] << ", " << (int) img[i + 3]
-//                 << "]" << endl;
-//        }
-//    }
-//}
-
 int main(int argc, char** argv) {
     if (argc < 2) {
         cout << "Error: Insert arguments.";
@@ -84,4 +70,3 @@ int main(int argc, char** argv) {
 
     return 0;
 }
-

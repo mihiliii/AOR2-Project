@@ -4,6 +4,7 @@
 #include <iostream>
 #include <immintrin.h>
 #include <cmath>
+#include "../header/helper.h"
 
 extern int width, height, channels;
 using namespace std;
@@ -349,4 +350,33 @@ void aor2::grayscale_op(unsigned char* img) {
         img[i + 2] = avg_value;
     }
     EndTimer
+}
+
+unsigned char* aor2::filter_op(Pixel* image_ptr, float* matrix, int N) {
+    auto copy = new aor2::Pixel[width * height];
+    StartTimer(SIMD)
+    int k = N/2;
+    for (int i = k; i < height - (k + 64); i += 64) {
+        for (int j = k; j < width - (k + 16); j += 16) {
+            for (int ii = i; ii < i + 64; ii++) {
+                for (int jj = j; jj < j + 16; jj++) {
+                    int R = 0, G = 0, B = 0;
+                    for (int a = 0; a < N; a++){
+                        for (int b = 0; b < N; b++) {
+                            R = R + (int) ((float) image_ptr[(ii + a - k) * width + jj + b - k].R * matrix[a * N + b]);
+                            G = G + (int) ((float) image_ptr[(ii + a - k) * width + jj + b - k].G * matrix[a * N + b]);
+                            B = B + (int) ((float) image_ptr[(ii + a - k) * width + jj + b - k].B * matrix[a * N + b]);
+                        }
+                    }
+                    R = std::max(0, std::min(255, R));
+                    G = std::max(0, std::min(255, G));
+                    B = std::max(0, std::min(255, B));
+                    copy[ii * width + jj] = { (unsigned char) R, (unsigned char) G, (unsigned char) B, 255};
+                }
+            }
+        }
+    }
+    EndTimer
+    stbi_image_free((unsigned char*) image_ptr);
+    return (unsigned char*) copy;
 }

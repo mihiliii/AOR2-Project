@@ -6,8 +6,6 @@
 #include <unordered_map>
 #include "../header/operations_optimized.h"
 
-
-
 using namespace std;
 
 unordered_map<string, function<void(unsigned char*)>> func_1 = {
@@ -74,7 +72,7 @@ int aor2::decode_line(unsigned char*& image_ptr, const std::string& line) {
             ss >> element;
             matrix[i] = stof(element);
         }
-        image_ptr = aor2::filter((Pixel*) image_ptr, &matrix[0], N);
+        image_ptr = aor2::filter_op((Pixel*) image_ptr, &matrix[0], N);
         return 1;
     }
     if (func_1.find(instruction_str) != func_1.end()) {
@@ -107,4 +105,24 @@ int aor2::decode_line(unsigned char*& image_ptr, const std::string& line) {
     }
     cout << "Error: Invalid instruction";
     return -1;
+}
+
+void aor2::printPixels(unsigned char* img, int size, int channels) {
+   if (channels == 3){
+       for (int i = 0; i < size; i += channels) {
+           cout << "[" << (int) img[i] 
+                << ", " << (int) img[i + 1] 
+                << ", " << (int) img[i + 2]
+                << "]" << endl;
+       }
+   }
+   else {
+       for (int i = 0; i < size; i += channels) {
+           cout << "[" << (int) img[i] 
+                << ", " << (int) img[i + 1] 
+                << ", " << (int) img[i + 2]
+                << ", " << (int) img[i + 3] 
+                << "]" << endl;
+       }
+   }
 }

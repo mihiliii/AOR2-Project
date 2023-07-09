@@ -80,7 +80,7 @@ int aor2::decode_line(unsigned char*& image_ptr, const std::string& line) {
         unsigned char* new_image_ptr = stbi_load(filename, &width, &height, &channels, STBI_rgb_alpha);
         channels = 4;
 
-        aor2::filter((Pixel*) image_ptr, &matrix[0], N, (Pixel*) new_image_ptr);
+        aor2::filter_op((Pixel*) image_ptr, &matrix[0], N, (Pixel*) new_image_ptr);
 
         stbi_image_free(image_ptr);
         image_ptr = new_image_ptr;
@@ -127,15 +127,15 @@ int aor2::decode_line(unsigned char*& image_ptr, const std::string& line) {
 void aor2::printPixels(unsigned char* img, int size) {
    if (channels == 3){
        for (int i = 0; i < size; i += channels) {
-           cout << "[" << (int) img[i] 
+           cout << "[" << (int) img[i]
                 << ", " << (int) img[i + 1] 
                 << ", " << (int) img[i + 2]
                 << "]" << endl;
        }
    }
    else {
-       for (int i = 0; i < size; i += channels) {
-           cout << "[" << (int) img[i] 
+       for (int i = 0; i < size * 4; i += channels) {
+           cout << i / 4 << "[" << (int) img[i]
                 << ", " << (int) img[i + 1] 
                 << ", " << (int) img[i + 2]
                 << ", " << (int) img[i + 3] 

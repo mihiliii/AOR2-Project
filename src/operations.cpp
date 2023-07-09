@@ -173,6 +173,4 @@ void aor2::filter(Pixel* image_ptr, float* matrix, int N, Pixel* new_image_ptr) 
         }
     }
     EndTimer
-    stbi_image_free((unsigned char*) image_ptr);
-    return (unsigned char*) new_image_ptr;
 }

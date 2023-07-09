@@ -317,12 +317,9 @@ void aor2::inverse_op(unsigned char* img) {
 void aor2::grayscale_op(unsigned char* img) {
     int i = 0;
     int array_size = height * width * channels;
-    int R_mask = 0x000000FF;
-    int G_mask = 0x0000FF00;
-    int B_mask = 0x00FF0000;
-    __m256i vec_red_mask = _mm256_set1_epi32(R_mask);
-    __m256i vec_green_mask = _mm256_set1_epi32(G_mask);
-    __m256i vec_blue_mask = _mm256_set1_epi32(B_mask);
+    __m256i vec_red_mask = _mm256_set1_epi32(0x000000FF);
+    __m256i vec_green_mask = _mm256_set1_epi32(0x0000FF00);
+    __m256i vec_blue_mask = _mm256_set1_epi32(0x00FF0000);
     __m256 vec_divisor = _mm256_set1_ps(3);
 
     StartTimer(SIMD)
@@ -355,26 +352,32 @@ void aor2::grayscale_op(unsigned char* img) {
 void aor2::filter_op(Pixel* image_ptr, float* matrix, int N, Pixel* new_image_ptr) {
     StartTimer(SIMD)
     int k = N/2;
-    for (int i = k; i < height - k; i += 64) {
-        for (int j = k; j < width - k; j += 16) {
-            for (int ii = i; ii < (i + 64) && ii < (height - k); ii++) {
-                for (int jj = j; jj < (j + 16) && (jj < height - k); jj++) {
-                    int R = 0, G = 0, B = 0;
-                    for (int a = 0; a < N; a++){
-                        for (int b = 0; b < N; b++) {
-                            R = R + (int) ((float) image_ptr[(ii + a - k) * width + jj + b - k].R * matrix[a * N + b]);
-                            G = G + (int) ((float) image_ptr[(ii + a - k) * width + jj + b - k].G * matrix[a * N + b]);
-                            B = B + (int) ((float) image_ptr[(ii + a - k) * width + jj + b - k].B * matrix[a * N + b]);
-                        }
+    for (int i = k; i < height - k; i++) {
+        for (int j = k; j < width - (k + 4); j += 4) {
+            __m128i vec_store = _mm_set1_epi32(0);
+            for (int color = 0; color < 3; color++) {
+                __m128i vec_pixel_center = _mm_set1_epi32(0);
+                __m128i mask = _mm_set1_epi32(0xFF << 8 * color);
+                __m128i vec_max_char = _mm_set1_epi32(0xFF << 8 * color);
+                __m128i vec_min_char = _mm_set1_epi32(0);
+                for (int a = 0; a < N; a++) {
+                    for (int b = 0; b < N; b++) {
+                        __m128i vec_pixels = _mm_loadu_si128((__m128i*) (image_ptr + (i + a - k) * width + j + b - k));
+                        vec_pixels = _mm_and_si128(vec_pixels, mask);
+
+                        __m128 vec_pixels_float = _mm_cvtepi32_ps(vec_pixels);
+                        __m128 vec_matrix_elems = _mm_set1_ps(matrix[a * N + b]);
+
+                        __m128 vec_result = _mm_mul_ps(vec_pixels_float, vec_matrix_elems);
+
+                        vec_pixel_center = _mm_add_epi32(vec_pixel_center, _mm_cvtps_epi32(vec_result));
                     }
-                    R = std::max(0, std::min(255, R));
-                    G = std::max(0, std::min(255, G));
-                    B = std::max(0, std::min(255, B));
-                    new_image_ptr[ii * width + jj] = { (unsigned char) R, (unsigned char) G, (unsigned char) B, 255};
                 }
+                vec_pixel_center = _mm_max_epi32(_mm_min_epi32(vec_max_char, vec_pixel_center), vec_min_char);
+                vec_store = _mm_or_si128(vec_store, vec_pixel_center);
             }
+            _mm_storeu_si128((__m128i*) (new_image_ptr + i * width + j), vec_store);
         }
     }
     EndTimer
-    return (unsigned char*) copy;
 }

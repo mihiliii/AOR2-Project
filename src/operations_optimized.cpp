@@ -5,9 +5,9 @@
 #include <immintrin.h>
 #include <cmath>
 #include "../header/helper.h"
-#include "../header/vectormath_exp.h"
 
 extern int width, height, channels;
+extern uint32_t cache_size, cache_associativity, cache_entriesPerSet, cache_blockSize;
 using namespace std;
 
 void aor2::add_op(unsigned char* img, unsigned char value, aor2::COLOR color) {
@@ -166,7 +166,7 @@ void aor2::power_op(unsigned char* img, float value, aor2::COLOR color) {
     int array_size = height * width * channels;
     int mask = 0x000000FF << 8 * color;
     __m256i vec_color_mask = _mm256_set1_epi32(mask);
-    __m256i vec_inverse_mask = _mm256_set1_epi32(0xFF ^ 0xFFFFFFFF);
+    __m256i vec_inverse_mask = _mm256_set1_epi32(mask ^ 0xFFFFFFFF);
     __m256 vec_value = _mm256_set1_ps(value);
     __m256i vec_R_mask = _mm256_set1_epi32(0xFF);
 
@@ -181,7 +181,8 @@ void aor2::power_op(unsigned char* img, float value, aor2::COLOR color) {
 
         __m256i vec_result = _mm256_and_si256(_mm256_cvtps_epi32(temp),vec_R_mask);
 
-        vec_result = _mm256_or_si256( _mm256_and_si256(vec_mem, vec_inverse_mask), _mm256_srli_epi32(vec_result, 8 * color));
+        vec_result = _mm256_or_si256( _mm256_and_si256(vec_mem, vec_inverse_mask), _mm256_slli_epi32(vec_result, 8 * color));
+
 
         _mm256_storeu_si256((__m256i*) (img + i), vec_result);
 
@@ -398,3 +399,86 @@ void aor2::filter_op(Pixel* image_ptr, float* matrix, int N, Pixel* new_image_pt
     }
     EndTimer
 }
+
+//void aor2::filter_op(Pixel* image_ptr, float* matrix, int N, Pixel* new_image_ptr) {
+//    StartTimer(FILTER SIMD)
+//    int k = N/2;
+//    int i;
+//    int blockSize = cache_blockSize / sizeof(Pixel);
+//    for (i = k; i < height - (k + blockSize); i += blockSize) {
+//        int j;
+//        for (j = k; j < width - (k + 8 + blockSize); j += blockSize) {
+//            for (int ii = i; ii < i + blockSize; ii++) {
+//                for (int jj = j; jj < j + blockSize; jj += 8) {
+//                    __m256i vec_store = _mm256_set1_epi32(0);
+//                    for (int color = 0; color < 3; color++) {
+//                        __m256i vec_pixel_center = _mm256_set1_epi32(0);
+//                        __m256i mask = _mm256_set1_epi32(0xFF << 8 * color);
+//                        __m256i vec_max_char = _mm256_set1_epi32(0xFF << 8 * color);
+//                        __m256i vec_min_char = _mm256_set1_epi32(0);
+//                        for (int a = 0; a < N; a++) {
+//                            for (int b = 0; b < N; b++) {
+//                                __m256i vec_pixels = _mm256_loadu_si256((__m256i*) (image_ptr + (ii + a - k) * width + jj + b - k));
+//                                vec_pixels = _mm256_and_si256(vec_pixels, mask);
+//
+//                                __m256 vec_pixels_float = _mm256_cvtepi32_ps(vec_pixels);
+//                                __m256 vec_matrix_elems = _mm256_set1_ps(matrix[a * N + b]);
+//
+//                                __m256 vec_result = _mm256_mul_ps(vec_pixels_float, vec_matrix_elems);
+//
+//                                vec_pixel_center = _mm256_add_epi32(vec_pixel_center, _mm256_cvtps_epi32(vec_result));
+//                            }
+//                        }
+//                        vec_pixel_center = _mm256_max_epi32(_mm256_min_epi32(vec_max_char, vec_pixel_center), vec_min_char);
+//                        vec_store = _mm256_or_si256(vec_store, vec_pixel_center);
+//                    }
+//                    _mm256_storeu_si256((__m256i*) (new_image_ptr + ii * width + jj), vec_store);
+//                }
+//            }
+//        }
+//        for (int ii = i; ii < i + blockSize; ii++) {
+//            for (int jj = j; jj < width - k; jj++) {
+//                int R = 0, G = 0, B = 0;
+//                for (int a = 0; a < N; a++){
+//                    for (int b = 0; b < N; b++) {
+//                        R = R + (int) ((float) image_ptr[(ii + a - k) * width + jj + b - k].R * matrix[a * N + b]);
+//                        G = G + (int) ((float) image_ptr[(ii + a - k) * width + jj + b - k].G * matrix[a * N + b]);
+//                        B = B + (int) ((float) image_ptr[(ii + a - k) * width + jj + b - k].B * matrix[a * N + b]);
+//                    }
+//                }
+//                R = std::max(0, std::min(255, R));
+//                G = std::max(0, std::min(255, G));
+//                B = std::max(0, std::min(255, B));
+//                new_image_ptr[ii * width + jj] = { (unsigned char) R, (unsigned char) G, (unsigned char) B, 255};
+//            }
+//        }
+//    }
+//    for (int ii = i; ii < height - k; ii++) {
+//        for (int jj = 0; jj < width - k; jj++) {
+//            __m256i vec_store = _mm256_set1_epi32(0);
+//            for (int color = 0; color < 3; color++) {
+//                __m256i vec_pixel_center = _mm256_set1_epi32(0);
+//                __m256i mask = _mm256_set1_epi32(0xFF << 8 * color);
+//                __m256i vec_max_char = _mm256_set1_epi32(0xFF << 8 * color);
+//                __m256i vec_min_char = _mm256_set1_epi32(0);
+//                for (int a = 0; a < N; a++) {
+//                    for (int b = 0; b < N; b++) {
+//                        __m256i vec_pixels = _mm256_loadu_si256((__m256i*) (image_ptr + (ii + a - k) * width + jj + b - k));
+//                        vec_pixels = _mm256_and_si256(vec_pixels, mask);
+//
+//                        __m256 vec_pixels_float = _mm256_cvtepi32_ps(vec_pixels);
+//                        __m256 vec_matrix_elems = _mm256_set1_ps(matrix[a * N + b]);
+//
+//                        __m256 vec_result = _mm256_mul_ps(vec_pixels_float, vec_matrix_elems);
+//
+//                        vec_pixel_center = _mm256_add_epi32(vec_pixel_center, _mm256_cvtps_epi32(vec_result));
+//                    }
+//                }
+//                vec_pixel_center = _mm256_max_epi32(_mm256_min_epi32(vec_max_char, vec_pixel_center), vec_min_char);
+//                vec_store = _mm256_or_si256(vec_store, vec_pixel_center);
+//            }
+//            _mm256_storeu_si256((__m256i*) (new_image_ptr + ii * width + jj), vec_store);
+//        }
+//    }
+//    EndTimer
+//}

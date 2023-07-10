@@ -49,10 +49,11 @@ int main(int argc, char** argv) {
     if (txt_file.is_open()) {
         string line;
         while (getline(txt_file, line)) {
-             if (aor2::decode_line(image_ptr, line) < 0) {
-                 _mm_free(image_ptr);
-                 exit(-1);
-             }
+            if (aor2::decode_line(image_ptr, line) < 0) {
+                _mm_free(image_ptr);
+                exit(-1);
+            }
+            aor2::printPixels(image_ptr, 100);
         }
         txt_file.close();
     } else {

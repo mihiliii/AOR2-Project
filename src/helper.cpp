@@ -14,7 +14,7 @@ using namespace std;
 extern int width, height, channels;
 extern bool optimized;
 
-uint32_t cache_size, cache_associativity, cache_lines, cache_lineSize;
+uint32_t cache_size, cache_associativity, cache_entriesPerSet, cache_blockSize;
 
 unordered_map<string, function<void(unsigned char*)>> func_1 = {
         {"INVERSE", aor2::inverse},
@@ -185,8 +185,8 @@ void aor2::readCacheInfo() {
 
         cache_size = (ecx >> 24) & 0xFF,
         cache_associativity = (ecx >> 16) & 0xFF,
-        cache_lines = (ecx >> 8) & 0xFF,
-        cache_lineSize = ecx & 0xFF;
+        cache_blockSize = ecx & 0xFF,
+        cache_entriesPerSet = (cache_size * 1024 / cache_associativity) / cache_blockSize;
 
 //        printf(
 //                "L1 Data Cache:\n"
@@ -197,8 +197,8 @@ void aor2::readCacheInfo() {
 //                "\n",
 //                cache_size,
 //                cache_associativity,
-//                cache_lines,
-//                cache_lineSize
+//                cache_entriesPerSet,
+//                cache_blockSize
 //        );
     }
 }

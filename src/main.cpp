@@ -53,7 +53,6 @@ int main(int argc, char** argv) {
                 _mm_free(image_ptr);
                 exit(-1);
             }
-            aor2::printPixels(image_ptr, 100);
         }
         txt_file.close();
     } else {

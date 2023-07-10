@@ -1,6 +1,3 @@
-#include <emmintrin.h>
-#include <immintrin.h>
-
 #include <iostream>
 #include <cmath>
 
@@ -14,7 +11,7 @@ extern int width, height, channels;
 const unsigned char COLOR_MAX_VALUE = 255;
 
 void aor2::add(unsigned char* image_ptr, unsigned char value, aor2::COLOR color) {
-    StartTimer(NOSIMD)
+    StartTimer(ADD NOSIMD)
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
             int image_pixel = (i * width + j) * channels;
@@ -25,16 +22,18 @@ void aor2::add(unsigned char* image_ptr, unsigned char value, aor2::COLOR color)
 }
 
 void aor2::sub(unsigned char* image_ptr, unsigned char value, aor2::COLOR color) {
+    StartTimer(SUB NOSIMD)
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
             int image_pixel = (i * width + j) * channels;
             image_ptr[image_pixel + color] -= value;
         }
     }
+    EndTimer
 }
 
 void aor2::mul(unsigned char* image_ptr, float value, aor2::COLOR color) {
-    StartTimer(NOSIMD)
+    StartTimer(MUL NOSIMD)
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
             int image_pixel = (i * width + j) * channels;
@@ -45,7 +44,7 @@ void aor2::mul(unsigned char* image_ptr, float value, aor2::COLOR color) {
 }
 
 void aor2::div(unsigned char* image_ptr, float value, aor2::COLOR color) {
-    StartTimer(NOSIMD)
+    StartTimer(DIV NOSIMD)
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
             int image_pixel = (i * width + j) * channels;
@@ -56,7 +55,7 @@ void aor2::div(unsigned char* image_ptr, float value, aor2::COLOR color) {
 }
 
 void aor2::sub_inverse(unsigned char* image_ptr, unsigned char value, aor2::COLOR color) {
-    StartTimer(NOSIMD)
+    StartTimer(SUBI NOSIMD)
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
             int image_pixel = (i * width + j) * channels;
@@ -67,16 +66,18 @@ void aor2::sub_inverse(unsigned char* image_ptr, unsigned char value, aor2::COLO
 }
 
 void aor2::div_inverse(unsigned char* image_ptr, float value, aor2::COLOR color) {
+    StartTimer(DIVI NOSIMD)
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
             int image_pixel = (i * width + j) * channels;
-            image_ptr[image_pixel + color] = value / image_ptr[image_pixel + color];
+            image_ptr[image_pixel + color] = (unsigned char) (value / (float) image_ptr[image_pixel + color]);
         }
     }
+    EndTimer
 }
 
 void aor2::power(unsigned char* image_ptr, float value, aor2::COLOR color) {
-    StartTimer(NOSIMD)
+    StartTimer(POW NOSIMD)
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
             int image_pixel = (i * width + j) * channels;
@@ -87,7 +88,7 @@ void aor2::power(unsigned char* image_ptr, float value, aor2::COLOR color) {
 }
 
 void aor2::log(unsigned char* image_ptr, aor2::COLOR color) {
-    StartTimer(NOSIMD)
+    StartTimer(LOG NOSIMD)
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
             int image_pixel = (i * width + j) * channels;
@@ -98,7 +99,7 @@ void aor2::log(unsigned char* image_ptr, aor2::COLOR color) {
 }
 
 void aor2::abs(unsigned char* image_ptr, aor2::COLOR color) {
-    StartTimer(NOSIMD)
+    StartTimer(ABS NOSIMD)
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
             int image_pixel = (i * width + j) * channels;
@@ -109,25 +110,29 @@ void aor2::abs(unsigned char* image_ptr, aor2::COLOR color) {
 }
 
 void aor2::min(unsigned char* image_ptr, unsigned char value, aor2::COLOR color) {
+    StartTimer(MIN NOSIMD)
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
             int image_pixel = (i * width + j) * channels;
             image_ptr[image_pixel + color] = (unsigned char) std::min(image_ptr[image_pixel + color], value);
         }
     }
+    EndTimer
 }
 
 void aor2::max(unsigned char* image_ptr, unsigned char value, aor2::COLOR color) {
+    StartTimer(MAX NOSIMD)
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
             int image_pixel = (i * width + j) * channels;
             image_ptr[image_pixel + color] = (unsigned char) std::max(image_ptr[image_pixel + color], value);
         }
     }
+    EndTimer
 }
 
 void aor2::inverse(unsigned char* image_ptr) {
-    StartTimer(NOSIMD)
+    StartTimer(INVERSE NOSIMD)
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
             int image_pixel = (i * width + j) * channels;
@@ -140,7 +145,7 @@ void aor2::inverse(unsigned char* image_ptr) {
 }
 
 void aor2::grayscale(unsigned char* image_ptr) {
-    StartTimer(NOSIMD)
+    StartTimer(GRAYSCALE NOSIMD)
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
             int image_pixel = (i * width + j) * channels;
@@ -154,7 +159,7 @@ void aor2::grayscale(unsigned char* image_ptr) {
 }
 
 void aor2::filter(Pixel* image_ptr, float* matrix, int N, Pixel* new_image_ptr) {
-    StartTimer(NOSIMD)
+    StartTimer(FILTER NOSIMD)
     int k = N/2;
     for (int i = k; i < height - k; i++) {
         for (int j = k; j < width - k; j++) {

@@ -3,6 +3,8 @@
 
 #include "../header/operations.h"
 
+using namespace std;
+
 namespace aor2 {
 
     void add_op(unsigned char* image_ptr, unsigned char value, COLOR);

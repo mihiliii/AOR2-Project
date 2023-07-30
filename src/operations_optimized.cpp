@@ -1,9 +1,10 @@
-#include "../header/operations_optimized.h"
-#include "../header/_Timer.h"
-#include "../header/avx_mathfun.h"
 #include <iostream>
 #include <immintrin.h>
 #include <cmath>
+
+#include "../header/operations_optimized.h"
+#include "../header/_Timer.h"
+#include "../header/avx_mathfun.h"
 #include "../header/helper.h"
 
 extern int width, height, channels;

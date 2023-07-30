@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include "../header/operations_optimized.h"
+#include "../header/operations.h"
 #include "../header/helper.h"
 
 using namespace std;

@@ -1,7 +1,7 @@
 #ifndef operations_optimized_h
 #define operations_optimized_h
 
-#include "../header/operations.h"
+#include "helper.h"
 
 using namespace std;
 

@@ -1,18 +1,9 @@
 #ifndef operations_h
 #define operations_h
 
+#include "helper.h"
+
 namespace aor2 {
-
-    enum COLOR {
-        RED, GREEN, BLUE
-    };
-
-    struct Pixel {
-        unsigned char R;
-        unsigned char G;
-        unsigned char B;
-        unsigned char A;
-    };
 
     void add(unsigned char* image_ptr, unsigned char value, COLOR);
     void sub(unsigned char* image_ptr, unsigned char value, COLOR);

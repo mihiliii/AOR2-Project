@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
         while (getline(txt_file, line)) {
             if (aor2::decode_line(image_ptr, line) < 0) {
                 _mm_free(image_ptr);
-                exit(-1);
+                return -1;
             }
         }
         txt_file.close();
@@ -67,7 +67,10 @@ int main(int argc, char** argv) {
             return -1;
         }
     } else if ((string)argv[2] == ".bmp") {
-        if (!stbi_write_bmp("output_image.jpg", width, height, channels, image_ptr)) {
+        for (int i = aor2::COLOR::ALPHA; i < width * height * channels; i += channels) {
+            image_ptr[i] = 255;
+        }
+        if (!stbi_write_bmp("output_image.bmp", width, height, channels, image_ptr)) {
             cout << "Error: Failed to save image. \n";
             _mm_free(image_ptr);
             return -1;
